@@ -71,44 +71,6 @@ jobs:
           echo "run_test=${run_test}" >> $GITHUB_OUTPUT
           echo "commit=${commit}" >> $GITHUB_OUTPUT
 
-      # - name: Update reference
-      #   if: steps.esphome-release.outputs.tag != steps.test-release.outputs.tag
-      #   uses: fjogeleit/yaml-update-action@v0.16.1
-      #   with:
-      #     commitChange: false
-      #     message: "Update reference"
-      #     # branch: ${{ github.ref }}
-      #     changes: |
-      #       {
-      #         "test/test-sen6x-esp32-s3-idf.yaml": {
-      #           "substitutions.ref": "${{ github.ref_name }}"
-      #         },
-      #         "test/test-sen6x-esp32-s3-ard.yaml": {
-      #           "substitutions.ref": "${{ github.ref_name }}"
-      #         },
-      #         "test/test-sen6x-rp2040.yaml": {
-      #           "substitutions.ref": "${{ github.ref_name }}"
-      #         }
-      #         "test/test-stusb4500-esp32-s3-idf.yaml": {
-      #           "substitutions.ref": "${{ github.ref_name }}"
-      #         },
-      #         "test/test-stusb4500-esp32-s3-ard.yaml": {
-      #           "substitutions.ref": "${{ github.ref_name }}"
-      #         },
-      #         "test/test-stusb4500-rp2040.yaml": {
-      #           "substitutions.ref": "${{ github.ref_name }}"
-      #         },
-      #         "test/test-tfmini-esp32-s3-idf.yaml": {
-      #           "substitutions.ref": "${{ github.ref_name }}"
-      #         },
-      #         "test/test-tfmini-esp32-s3-ard.yaml": {
-      #           "substitutions.ref": "${{ github.ref_name }}"
-      #         },
-      #         "test/test-tfmini-rp2040.yaml": {
-      #           "substitutions.ref": "${{ github.ref_name }}"
-      #         }
-      #       }
-
       - name: Display data
         run: |
           echo "Latest ESPHome Release ${{ steps.esphome-release.outputs.tag }}."
@@ -118,10 +80,9 @@ jobs:
 
       - name: ESPHome ${{ matrix.esphome-version }}
         if: steps.test-conditions.outputs.run_test != 0
-        # uses: mikelawrence/esphome-build-action@add-compile-args
-        uses: esphome/build-action@4ef4722a2935eac47b7e227fe0e1f8e0f8afcc42
+        # esphome/build-action v8.0.0
+        uses: esphome/build-action@6b9d3f593d626a2f0d2c17daebf0a97957d67425
         with:
-          # substitutions: '{ "ref": "${{ github.ref_name }}" }'
           substitutions: |
             ref=${{ github.sha }}
           yaml-file: ${{ matrix.file }}.yaml
