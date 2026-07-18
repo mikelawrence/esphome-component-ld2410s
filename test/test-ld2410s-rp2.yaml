@@ -9,10 +9,11 @@ rp2:
   board: rpipicow
 
 external_components:
-  source:
-    type: git
-    url: https://github.com/mikelawrence/esphome-component-ld2410s
-    ref: ${ref}
+  - source:
+      type: git
+      url: https://github.com/mikelawrence/esphome-component-ld2410s
+      ref: ${ref}
+    components: [ ld2410s ]
 
 uart:
   - id: ld2410s_uart
