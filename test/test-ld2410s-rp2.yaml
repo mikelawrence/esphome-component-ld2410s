@@ -9,7 +9,7 @@ rp2:
   board: rpipicow
 
 external_components:
-  - source: github://mikelawrence/esphome-component-ld2410s
+  - source: github://mikelawrence/esphome-component-ld2410s@{ref}
 
 uart:
   - id: ld2410s_uart
