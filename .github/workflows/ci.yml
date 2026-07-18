@@ -1,0 +1,141 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+
+  schedule:
+    - cron: "0 0 * * 0"
+
+  workflow_dispatch:
+
+concurrency:
+  group: "Only one at a time"
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Building ${{ matrix.file }} / ${{ matrix.esphome-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        #### Modify below here to match your project ####
+        file:
+          - test/test-ld2410s-esp32-s3-idf
+          - test/test-ld2410s-esp32-s3-ard
+          - test/test-ld2410s-rp2
+        #### Modify above here to match your project ####
+        esphome-version:
+          - stable
+          - dev
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Get latest ESPHome release tag
+        id: esphome-release             # The step ID to refer to later
+        uses: oprypin/find-latest-tag@v1
+        with:
+          repository: esphome/esphome   # The repository to scan
+          releases-only: true           # We know that all relevant tags have a GitHub release for them
+
+      - name: Get last tested ESPHome release tag
+        id: test-release
+        run: |
+          tag=$(jq -r '.last_tested_tag' test/.test-data.json)
+
+      - name: Should we test? Commit?
+        id: test-conditions
+        run: |
+          run_test=1
+          commit=0
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            echo "This is a scheduled CI"
+            echo "Latest ESPHome Release ${{ steps.esphome-release.outputs.tag }}."
+            echo "Last tested ESPHome Release ${{ steps.test-release.outputs.tag }}."
+            if [[ "${{ steps.esphome-release.outputs.tag }}" == "${{ steps.test-release.outputs.tag }}" ]]; then
+              run_test=0
+              echo "No change in version. There is no reason to test again."
+            else
+              echo "We should test again." 
+              commit=1
+            fi
+          else
+            echo "This is a commit, always run tests."
+          fi
+          echo "run_test=${run_test}" >> $GITHUB_OUTPUT
+          echo "commit=${commit}" >> $GITHUB_OUTPUT
+
+      # - name: Update reference
+      #   if: steps.esphome-release.outputs.tag != steps.test-release.outputs.tag
+      #   uses: fjogeleit/yaml-update-action@v0.16.1
+      #   with:
+      #     commitChange: false
+      #     message: "Update reference"
+      #     # branch: ${{ github.ref }}
+      #     changes: |
+      #       {
+      #         "test/test-sen6x-esp32-s3-idf.yaml": {
+      #           "substitutions.ref": "${{ github.ref_name }}"
+      #         },
+      #         "test/test-sen6x-esp32-s3-ard.yaml": {
+      #           "substitutions.ref": "${{ github.ref_name }}"
+      #         },
+      #         "test/test-sen6x-rp2040.yaml": {
+      #           "substitutions.ref": "${{ github.ref_name }}"
+      #         }
+      #         "test/test-stusb4500-esp32-s3-idf.yaml": {
+      #           "substitutions.ref": "${{ github.ref_name }}"
+      #         },
+      #         "test/test-stusb4500-esp32-s3-ard.yaml": {
+      #           "substitutions.ref": "${{ github.ref_name }}"
+      #         },
+      #         "test/test-stusb4500-rp2040.yaml": {
+      #           "substitutions.ref": "${{ github.ref_name }}"
+      #         },
+      #         "test/test-tfmini-esp32-s3-idf.yaml": {
+      #           "substitutions.ref": "${{ github.ref_name }}"
+      #         },
+      #         "test/test-tfmini-esp32-s3-ard.yaml": {
+      #           "substitutions.ref": "${{ github.ref_name }}"
+      #         },
+      #         "test/test-tfmini-rp2040.yaml": {
+      #           "substitutions.ref": "${{ github.ref_name }}"
+      #         }
+      #       }
+
+      - name: Display data
+        run: |
+          echo "Latest ESPHome Release ${{ steps.esphome-release.outputs.tag }}."
+          echo "Last tested ESPHome Release ${{ steps.test-release.outputs.tag }}." 
+          echo "Run Test ${{ steps.test-conditions.outputs.run_test }}."
+          echo "Commit ${{ steps.test-conditions.outputs.commit }}."
+
+      - name: ESPHome ${{ matrix.esphome-version }}
+        if: steps.test-conditions.outputs.run_test != 0
+        # uses: mikelawrence/esphome-build-action@add-compile-args
+        uses: esphome/build-action@4ef4722a2935eac47b7e227fe0e1f8e0f8afcc42
+        with:
+          # substitutions: '{ "ref": "${{ github.ref_name }}" }'
+          substitutions: |
+            ref=${{ github.sha }}
+          yaml-file: ${{ matrix.file }}.yaml
+          version: ${{ matrix.esphome-version }}
+
+  commit:
+    name: Commit if scheduled check
+    needs: [ci]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Commit and push json changes
+        if: needs.ci.steps.test-conditions.outputs.commit != 0
+        uses: devops-infra/action-commit-push@v1.0.3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          commit_message: "Update last successfully tested ESPHome release version to ${{steps.test-release.outputs.tag}}"
+
