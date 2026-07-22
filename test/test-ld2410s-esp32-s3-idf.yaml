@@ -13,7 +13,7 @@ esp32:
     type: esp-idf
 
 external_components:
-  - source: github://mikelawrence/esphome-component-ld2410s@{ref}
+  - source: github://mikelawrence/esphome-component-ld2410s@${ref}
 
 uart:
   - id: ld2410s_uart
