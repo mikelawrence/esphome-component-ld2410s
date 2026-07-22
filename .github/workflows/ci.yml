@@ -84,7 +84,7 @@ jobs:
         uses: esphome/build-action@6b9d3f593d626a2f0d2c17daebf0a97957d67425
         with:
           substitutions: |
-            ref=${{ github.sha }}
+            ref=${{ github.event.pull_request.head.sha || github.sha }}
           yaml-file: ${{ matrix.file }}.yaml
           version: ${{ matrix.esphome-version }}
 
