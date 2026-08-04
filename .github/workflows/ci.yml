@@ -3,8 +3,6 @@ name: CI
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    branches:
-      - main
 
   schedule:
     - cron: "0 0 * * 0"
@@ -12,12 +10,72 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: "Only one at a time"
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
+  check:
+    name: Check ESPHome release
+    runs-on: ubuntu-latest
+    outputs:
+      latest_tag: ${{ steps.esphome-release.outputs.tag }}
+      tested_tag: ${{ steps.test-release.outputs.tag }}
+      run_test: ${{ steps.test-conditions.outputs.run_test }}
+      commit: ${{ steps.test-conditions.outputs.commit }}
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Get latest ESPHome release tag
+        id: esphome-release
+        uses: oprypin/find-latest-tag@6957ac556fa6d349727ecabfcaaf9f8e5ee37124  # v1.1.3
+        with:
+          repository: esphome/esphome
+          releases-only: true
+
+      - name: Get last tested ESPHome release tag
+        id: test-release
+        run: |
+          tag=$(jq -r '.last_tested_tag // ""' test/.test-data.json)
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+      - name: Should we test? Commit?
+        id: test-conditions
+        env:
+          LATEST: ${{ steps.esphome-release.outputs.tag }}
+          TESTED: ${{ steps.test-release.outputs.tag }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          run_test=1
+          commit=0
+          if [[ "${EVENT}" == "schedule" ]]; then
+            echo "Scheduled CI. Latest=${LATEST} LastTested=${TESTED}"
+            if [[ "${LATEST}" == "${TESTED}" ]]; then
+              run_test=0
+              echo "No change in version; skipping tests."
+            else
+              commit=1
+            fi
+          else
+            echo "Commit or manual run; always test."
+          fi
+          echo "run_test=${run_test}" >> "$GITHUB_OUTPUT"
+          echo "commit=${commit}" >> "$GITHUB_OUTPUT"
+
+      - name: Display data
+        run: |
+          echo "Latest:      ${{ steps.esphome-release.outputs.tag }}"
+          echo "Last tested: ${{ steps.test-release.outputs.tag }}"
+          echo "Run test:    ${{ steps.test-conditions.outputs.run_test }}"
+          echo "Commit:      ${{ steps.test-conditions.outputs.commit }}"
+
   ci:
     name: Building ${{ matrix.file }} / ${{ matrix.esphome-version }}
+    needs: [check]
+    if: needs.check.outputs.run_test != '0'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -33,70 +91,38 @@ jobs:
           - dev
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v5
-        with:
-          ref: ${{ github.ref }}
-
-      - name: Get latest ESPHome release tag
-        id: esphome-release             # The step ID to refer to later
-        uses: oprypin/find-latest-tag@v1
-        with:
-          repository: esphome/esphome   # The repository to scan
-          releases-only: true           # We know that all relevant tags have a GitHub release for them
-
-      - name: Get last tested ESPHome release tag
-        id: test-release
-        run: |
-          tag=$(jq -r '.last_tested_tag' test/.test-data.json)
-
-      - name: Should we test? Commit?
-        id: test-conditions
-        run: |
-          run_test=1
-          commit=0
-          if [[ "${{ github.event_name }}" == "schedule" ]]; then
-            echo "This is a scheduled CI"
-            echo "Latest ESPHome Release ${{ steps.esphome-release.outputs.tag }}."
-            echo "Last tested ESPHome Release ${{ steps.test-release.outputs.tag }}."
-            if [[ "${{ steps.esphome-release.outputs.tag }}" == "${{ steps.test-release.outputs.tag }}" ]]; then
-              run_test=0
-              echo "No change in version. There is no reason to test again."
-            else
-              echo "We should test again." 
-              commit=1
-            fi
-          else
-            echo "This is a commit, always run tests."
-          fi
-          echo "run_test=${run_test}" >> $GITHUB_OUTPUT
-          echo "commit=${commit}" >> $GITHUB_OUTPUT
-
-      - name: Display data
-        run: |
-          echo "Latest ESPHome Release ${{ steps.esphome-release.outputs.tag }}."
-          echo "Last tested ESPHome Release ${{ steps.test-release.outputs.tag }}." 
-          echo "Run Test ${{ steps.test-conditions.outputs.run_test }}."
-          echo "Commit ${{ steps.test-conditions.outputs.commit }}."
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: ESPHome ${{ matrix.esphome-version }}
-        if: steps.test-conditions.outputs.run_test != 0
-        # esphome/build-action v8.0.0
-        uses: esphome/build-action@6b9d3f593d626a2f0d2c17daebf0a97957d67425
+        uses: esphome/build-action@6b9d3f593d626a2f0d2c17daebf0a97957d67425  # v8.0.0
         with:
           substitutions: |
-            ref=${{ github.event.pull_request.head.sha || github.sha }}
+            ref=${{ github.sha }}
           yaml-file: ${{ matrix.file }}.yaml
           version: ${{ matrix.esphome-version }}
 
   commit:
     name: Commit if scheduled check
-    needs: [ci]
+    needs: [check, ci]
+    if: always() && needs.check.outputs.commit == '1' && needs.ci.result == 'success'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
+      - name: Checkout source code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Update tested tag in json
+        env:
+          LATEST: ${{ needs.check.outputs.latest_tag }}
+        run: |
+          tmp=$(mktemp)
+          jq --arg t "$LATEST" '.last_tested_tag = $t' test/.test-data.json > "$tmp"
+          mv "$tmp" test/.test-data.json
+          git diff --stat
+
       - name: Commit and push json changes
-        if: needs.ci.steps.test-conditions.outputs.commit != 0
-        uses: devops-infra/action-commit-push@v1.0.3
+        uses: devops-infra/action-commit-push@f066ea8e19660de57d3d3a4a0b9d294ea2612e20  # v1.5.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          commit_message: "Update last successfully tested ESPHome release version to ${{steps.test-release.outputs.tag}}"
-
+          commit_message: "Update last successfully tested ESPHome release version to ${{ needs.check.outputs.latest_tag }}"
