@@ -60,11 +60,12 @@ jobs:
             prev_tag=""
           fi
 
-          # Highest N already used in the current year/month; 0 if none.
-          current_max=$(awk -v y="$year" -v m="$month" \
-            '$1==y && $2==m && $3>max {max=$3} END {print max+0}' calver.txt)
+          # Next N for the current year/month. Sequence starts at 0, so an
+          # unused month gives 0 and an existing max of K gives K+1.
+          next_n=$(awk -v y="$year" -v m="$month" \
+            'BEGIN {max = -1} $1==y && $2==m && $3>max {max=$3} END {print max+1}' calver.txt)
 
-          new_tag="${year}.${month}.$((current_max + 1))"
+          new_tag="${year}.${month}.${next_n}"
 
           echo "prev_tag=$prev_tag" >> "$GITHUB_OUTPUT"
           echo "new_tag=$new_tag" >> "$GITHUB_OUTPUT"
