@@ -3,7 +3,7 @@
 namespace esphome::ld2410s {
 
 #pragma region LD2410S Specific Constants
-static const char *const TAG = "ld2410s";
+ESPHOME_LOG_TAG(TAG, "ld2410s");
 
 static const uint16_t CMD_CONFIRMATION = 0x0100;  // Command confirmation response code
 

@@ -2,7 +2,7 @@
 
 namespace esphome::ld2410s {
 
-static const char *const TAG = "ld2410s.switch";
+ESPHOME_LOG_TAG(TAG, "ld2410s.switch");
 
 void MinimalOutputSwitch::write_state(bool state) {
   this->publish_state(state);

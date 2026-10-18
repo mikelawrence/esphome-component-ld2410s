@@ -2,7 +2,7 @@
 
 namespace esphome::ld2410s {
 
-static const char *const TAG = "ld2410s.number";
+ESPHOME_LOG_TAG(TAG, "ld2410s.number");
 
 void MinDetectGateNumber::control(float value) {
   this->publish_state(value);

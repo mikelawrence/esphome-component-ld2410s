@@ -2,7 +2,7 @@
 
 namespace esphome::ld2410s {
 
-static const char *const TAG = "ld2410s.select";
+ESPHOME_LOG_TAG(TAG, "ld2410s.select");
 
 void ResponseSpeedSelect::control(size_t index) {
   this->publish_state(index);
