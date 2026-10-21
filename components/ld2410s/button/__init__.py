@@ -1,11 +1,7 @@
 import esphome.codegen as cg
 from esphome.components import button
 import esphome.config_validation as cv
-from esphome.const import (
-    CONF_ID,
-    DEVICE_CLASS_UPDATE,
-    ENTITY_CATEGORY_CONFIG,
-)
+from esphome.const import CONF_ID, DEVICE_CLASS_UPDATE, ENTITY_CATEGORY_CONFIG
 
 from .. import CONF_LD2410S_ID, LD2410SComponent, ld2410s_ns
 

@@ -14,4 +14,3 @@ class MinimalOutputSwitch : public switch_::Switch, public Parented<LD2410SCompo
 };
 
 }  // namespace esphome::ld2410s
-

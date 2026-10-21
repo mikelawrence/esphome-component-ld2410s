@@ -1,6 +1,9 @@
 substitutions:
   ref: main
 
+logger:
+  level: VERY_VERBOSE
+
 esphome:
   name: test-ld2410s-rp2
   friendly_name: Test LD2410S Component with RP2

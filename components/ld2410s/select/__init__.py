@@ -1,10 +1,7 @@
 import esphome.codegen as cg
 from esphome.components import select
 import esphome.config_validation as cv
-from esphome.const import (
-    CONF_ID,
-    ENTITY_CATEGORY_CONFIG,
-)
+from esphome.const import CONF_ID, ENTITY_CATEGORY_CONFIG
 
 from .. import CONF_LD2410S_ID, LD2410SComponent, ld2410s_ns
 
