@@ -320,7 +320,9 @@ text_sensor:
 
 ## Development with VS Code Dev Containers
 
-Open the component checkout in VS Code and reopen it in the Dev Container. The setup uses Docker Compose with a persistent cache volume shared by all builds.
+Open this component directory as the VS Code workspace and reopen it in the Dev Container. All component checkouts share the same persistent ESPHome, PlatformIO, and pip cache volumes; Docker also reuses locally downloaded ESPHome images.
+
+Run the VS Code task **Clear cached downloads** to empty the shared cache volumes and remove locally downloaded `ghcr.io/esphome/esphome` images. Close the Dev Container before running the task so Docker can remove images that are in use.
 
 On Windows, run the VS Code task **Build ESPHome test configs** to compile every `.yaml` and `.yml` file under `test/` with the ESPHome `stable`, `beta`, and `dev` images. The script detects the GitHub owner/repository from the checkout's `origin` remote and replaces matching ESPHome GitHub component sources with the local `components/` directory in temporary copies of the test files. The original test YAML files are not modified.
 

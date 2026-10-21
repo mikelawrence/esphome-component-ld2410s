@@ -7,8 +7,13 @@ services:
     volumes:
       - ..:/workspaces/component:cached
       - esphome-cache:/root/.cache/esphome
+      - platformio-cache:/root/.platformio
       - validation-cache:/root/.cache/pip
 
 volumes:
   esphome-cache:
+    name: esphome-components-esphome-cache
+  platformio-cache:
+    name: esphome-components-platformio-cache
   validation-cache:
+    name: esphome-components-validation-cache

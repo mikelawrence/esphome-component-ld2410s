@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Build ESPHome test configs",
+      "label": "ML ESPHome: Build ESPHome test configs",
       "type": "process",
       "command": "powershell.exe",
       "args": [
@@ -19,7 +19,7 @@
       }
     },
     {
-      "label": "Validate ESPHome component",
+      "label": "ML ESPHome: Validate ESPHome component",
       "type": "process",
       "command": "powershell.exe",
       "args": [
@@ -36,7 +36,7 @@
       }
     },
     {
-      "label": "Fix ESPHome component formatting/lint",
+      "label": "ML ESPHome: Fix ESPHome component formatting/lint",
       "type": "process",
       "command": "powershell.exe",
       "args": [
@@ -46,6 +46,23 @@
         "-File",
         "${workspaceFolder}\\.devcontainer\\validate.ps1",
         "-Fix"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "ML ESPHome: Clear cached downloads",
+      "type": "process",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\.devcontainer\\clear-cache.ps1"
       ],
       "problemMatcher": [],
       "presentation": {
