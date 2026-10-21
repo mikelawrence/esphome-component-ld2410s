@@ -317,3 +317,15 @@ text_sensor:
 * **ld2410s_id** (*Optional*, [ID](https://esphome.io/guides/configuration-types/#id)): Manually specify the ID for the ld2410s component. Required if there are multiple LD2410Ss configured.
 
 * **fw_version** (*Optional*): The is the LD2410S firmware version. All Options from [Sensor Component](https://esphome.io/components/text_sensor/#base-text-sensor-configuration).
+
+## Development with VS Code Dev Containers
+
+Open the component checkout in VS Code and reopen it in the Dev Container. The setup uses Docker Compose with a persistent cache volume shared by all builds.
+
+On Windows, run the VS Code task **Build ESPHome test configs** to compile every `.yaml` and `.yml` file under `test/` with the ESPHome `stable`, `beta`, and `dev` images. The script detects the GitHub owner/repository from the checkout's `origin` remote and replaces matching ESPHome GitHub component sources with the local `components/` directory in temporary copies of the test files. The original test YAML files are not modified.
+
+Run the separate VS Code task **Validate ESPHome component** for strict YAML linting, C/C++ formatting, Ruff format/lint, flake8, pylint, pyupgrade, and ESPHome-style text convention checks. Tool versions are pinned to the versions used by ESPHome CI, and the existing `.yamllint`, `.clang-format`, `.flake8`, and `pyproject.toml` configurations are used. clang-tidy is not included because it requires ESPHome's PlatformIO compilation metadata, which is not present in a standalone component checkout.
+
+Use **Fix ESPHome component formatting/lint** to apply clang-format, Ruff formatting and safe Ruff lint fixes, pyupgrade, and portable text fixes, then rerun validation. `yamllint`, flake8, pylint, and semantic or unsupported lint findings are not automatically rewritten and will be reported for manual attention.
+
+The build script can also be run directly with `-ConfigDirectory`, `-ComponentsDirectory`, and `-Versions` to select ESPHome tags, or with `-Image` to use one custom image. If the checkout does not have a GitHub `origin`, pass `-ComponentSource owner/repository` explicitly.

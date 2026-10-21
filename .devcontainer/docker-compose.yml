@@ -1,0 +1,14 @@
+services:
+  esphome:
+    image: ${ESPHOME_IMAGE:-ghcr.io/esphome/esphome:dev}
+    entrypoint: []
+    command: ["sleep", "infinity"]
+    working_dir: /workspaces/component
+    volumes:
+      - ..:/workspaces/component:cached
+      - esphome-cache:/root/.cache/esphome
+      - validation-cache:/root/.cache/pip
+
+volumes:
+  esphome-cache:
+  validation-cache:
