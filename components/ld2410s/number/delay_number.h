@@ -10,7 +10,7 @@ class DelayNumber final : public number::Number, public Parented<LD2410SComponen
   DelayNumber() = default;
 
  protected:
-  void control(float value) override ;
+  void control(float value) override;
 };
 
 }  // namespace esphome::ld2410s
