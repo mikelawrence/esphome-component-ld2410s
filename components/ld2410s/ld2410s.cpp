@@ -1,9 +1,16 @@
 #include "ld2410s.h"
 
+#include "esphome/core/log.h"
+#include "esphome/core/version.h"
+
 namespace esphome::ld2410s {
 
 #pragma region LD2410S Specific Constants
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 10, 0)
+ESPHOME_LOG_TAG(TAG, "ld2410s");
+#else
 static const char *const TAG = "ld2410s";
+#endif
 
 static const uint16_t CMD_CONFIRMATION = 0x0100;  // Command confirmation response code
 
