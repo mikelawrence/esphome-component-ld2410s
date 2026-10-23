@@ -74,10 +74,10 @@ binary_sensor:
 
 * **has_target** (*Optional*): When `true` the radar has detected a target either moving or still. This is effectivly presence. All Options from [Binary Sensor Component](https://esphome.io/components/binary_sensor/#base-binary-sensor-configuration).
 
-* **calibration_running** (*Optional*): When `true` Auto-Calibration is running and `false` when not. All Options from [Binary Sensor Component](https://esphome.io/components/binary_sensor/#base-binary-sensor-configuration).
+* **cal_running** (*Optional*): When `true` Auto-Calibration is running and `false` when not. All Options from [Binary Sensor Component](https://esphome.io/components/binary_sensor/#base-binary-sensor-configuration).
 
 > [!NOTE]
-> The has_target [Binary_Sensor](https://esphome.io/components/binary_sensor/#base-binary-sensor-configuration) above includes the following [Filter](https://https://esphome.io/components/binary_sensor/#binary-sensor-filters).
+> The has_target [Binary_Sensor](https://esphome.io/components/binary_sensor/#base-binary-sensor-configuration) above includes the following [Filter](https://esphome.io/components/binary_sensor/#binary-sensor-filters).
 > `- settle: 1s`
 > If you have defined other filters, this default will be overridden; you may of course add it back to your custom filter(s) as above if you wish.
 > To remove the default filter for any given sensor instance, add `filters: []` to its configuration.
@@ -186,21 +186,21 @@ number:
 
 * **ld2410s_id** (*Optional*, [ID](https://esphome.io/guides/configuration-types/#id)): Manually specify the ID for the ld2410s component. Required if there are multiple LD2410Ss configured.
 
-* **max_distance_gate** (*Optional*): This is the maximum detection gate. Default is 15 with a range of 0 to 15 in steps of 1. All Options from [Number Component](https://esphome.io/components/number/#base-number-configuration).
+* **max_detect_gate** (*Optional*): This is the maximum detection gate. Default is 15 with a range of 0 to 15 in steps of 1. All Options from [Number Component](https://esphome.io/components/number/#base-number-configuration).
 
-* **min_distance_gate** (*Optional*): This is the minimum detection gate. Default is 0 with a range of 0 to 15 in steps of 1. All Options from [Number Component](https://esphome.io/components/number/#base-number-configuration).
+* **min_detect_gate** (*Optional*): This is the minimum detection gate. Default is 0 with a range of 0 to 15 in steps of 1. All Options from [Number Component](https://esphome.io/components/number/#base-number-configuration).
 
 * **no_delay** (*Optional*): This is the no detection delay. Basically a delay off function. Default is 10 seconds (s) with a range of 0 to 120s in steps of 1s. All Options from [Number Component](https://esphome.io/components/number/#base-number-configuration).
 
 * **status_reporting_frequency** (*Optional*): This is `has_target` binary sensor reporting frequency. Default is 8.0Hz with a range of 0.5 to 8.0Hz. All Options from [Number Component](https://esphome.io/components/number/#base-number-configuration).
 
-* **distance_reporting_frequency** (*Optional*): This is `target_distance` binary sensor reporting frequency. Default is 8.0Hz with a range of 0.5 to 8.0Hz. All Options from [Number Component](https://esphome.io/components/number/#base-number-configuration).
+* **distance_reporting_frequency** (*Optional*): This is the `target_distance` sensor reporting frequency. Default is 8.0Hz with a range of 0.5 to 8.0Hz. All Options from [Number Component](https://esphome.io/components/number/#base-number-configuration).
 
 * **gX** (*Optional*): Thresholds for the Xth gate (X => 0 to 15). The gate sparation is 0.7m. Note the datsheet indicates static detection is effective only in the first 8 gates. The higher gates will still detect motion.
 
-  * **threshold_hold** (*Optional*): This represents the threshold to which a target will no longer be detected for the given gate. Default is gate specific and range is 10 to 95dB for gates 0 - 7 and 5 to 63dB for gate 8 - 15 in steps of 1dB. All Options from [Number Component](https://esphome.io/components/number/#base-number-configuration).
+  * **hold_threshold** (*Optional*): This represents the threshold to which a target will no longer be detected for the given gate. Default is gate specific and range is 10 to 95dB for gates 0 - 7 and 5 to 63dB for gate 8 - 15 in steps of 1dB. All Options from [Number Component](https://esphome.io/components/number/#base-number-configuration).
 
-  * **threshold_trigger** (*Optional*): Trigger Threshold detemine when the energy is enough to switch to target detected for the given gate. Default is gate specific and range is 10 to 95dB for gates 0 - 7 and 5 to 63dB for gate 8 - 15 in steps of 1dB. All Options from [Number Component](https://esphome.io/components/number/#base-number-configuration).
+  * **trigger_threshold** (*Optional*): Trigger Threshold detemine when the energy is enough to switch to target detected for the given gate. Default is gate specific and range is 10 to 95dB for gates 0 - 7 and 5 to 63dB for gate 8 - 15 in steps of 1dB. All Options from [Number Component](https://esphome.io/components/number/#base-number-configuration).
 
 ## Selects
 
@@ -272,9 +272,9 @@ sensor:
 
 * **cal_progress** (*Optional*): This is the current Auto-Calibration progress in perecent (%). All Options from [Sensor Component](https://esphome.io/components/sensor/#base-sensor-configuration).
 
-* **gX energy** (*Optional*): Energies for the Xth gate (X => 0 to 15). Range is 0 to 100dB in steps of 1dB. Only operates when Minimal Output is off. All Options from [Number Component](https://esphome.io/components/number/#base-number-configuration).
+* **gX energy** (*Optional*): Energies for the Xth gate (X => 0 to 15). Range is 0 to 100dB in steps of 1dB. Only operates when Minimal Output is off. All Options from [Sensor Component](https://esphome.io/components/sensor/#base-sensor-configuration).
 
-* **target_distance** (*Optional*): This sensor indicates current distance to target in meters (m). All Options from [Sensor Component](https://esphome.io/components/sensor/#base-sensor-configuration).
+* **target_distance** (*Optional*): This sensor indicates the current distance to the target in centimeters (cm). All Options from [Sensor Component](https://esphome.io/components/sensor/#base-sensor-configuration).
 
 > [!NOTE]
 > Each of the [Sensor Components](https://esphome.io/components/sensor/#base-sensor-configuration) above include the following [Filter](https://esphome.io/components/sensor/#sensor-filters).
