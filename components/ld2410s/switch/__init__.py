@@ -5,9 +5,7 @@ from esphome.const import DEVICE_CLASS_SWITCH, ENTITY_CATEGORY_CONFIG
 
 from .. import CONF_ID, CONF_LD2410S_ID, LD2410SComponent, ld2410s_ns
 
-MinimalOutputSwitch = ld2410s_ns.class_(
-    "MinimalOutputSwitch", switch.Switch
-)
+MinimalOutputSwitch = ld2410s_ns.class_("MinimalOutputSwitch", switch.Switch)
 
 CONF_MINIMAL_OUTPUT = "minimal_output"
 

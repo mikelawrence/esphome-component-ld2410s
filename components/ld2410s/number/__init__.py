@@ -22,16 +22,10 @@ DelayNumber = ld2410s_ns.class_("DelayNumber", number.Number)
 StatusReportingFreqNumber = ld2410s_ns.class_(
     "StatusReportingFreqNumber", number.Number
 )
-DistReportingFreqNumber = ld2410s_ns.class_(
-    "DistReportingFreqNumber", number.Number
-)
+DistReportingFreqNumber = ld2410s_ns.class_("DistReportingFreqNumber", number.Number)
 
-ThresholdTriggerNumber = ld2410s_ns.class_(
-    "ThresholdTriggerNumber", number.Number
-)
-ThresholdHoldNumber = ld2410s_ns.class_(
-    "ThresholdHoldNumber", number.Number
-)
+ThresholdTriggerNumber = ld2410s_ns.class_("ThresholdTriggerNumber", number.Number)
+ThresholdHoldNumber = ld2410s_ns.class_("ThresholdHoldNumber", number.Number)
 
 CONF_DISTANCE_REPORTING_FREQUENCY = "distance_reporting_frequency"
 CONF_MAX_DETECT_GATE = "max_detect_gate"

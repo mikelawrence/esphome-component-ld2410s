@@ -10,7 +10,7 @@ class StatusReportingFreqNumber : public number::Number, public Parented<LD2410S
   StatusReportingFreqNumber() = default;
 
  protected:
-  void control(float value) override ;
+  void control(float value) override;
 };
 
 }  // namespace esphome::ld2410s

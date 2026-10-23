@@ -1,6 +1,9 @@
 substitutions:
   ref: main
 
+logger:
+  level: VERY_VERBOSE
+
 esphome:
   name: test-ld2410s-esp32-s3-idf
   friendly_name: Test LD2410S Component with ESP32-S3 and ESP-IDF Framework

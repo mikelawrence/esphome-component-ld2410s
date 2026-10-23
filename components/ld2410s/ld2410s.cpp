@@ -1,9 +1,16 @@
 #include "ld2410s.h"
 
+#include "esphome/core/log.h"
+#include "esphome/core/version.h"
+
 namespace esphome::ld2410s {
 
 #pragma region LD2410S Specific Constants
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 10, 0)
+ESPHOME_LOG_TAG(TAG, "ld2410s");
+#else
 static const char *const TAG = "ld2410s";
+#endif
 
 static const uint16_t CMD_CONFIRMATION = 0x0100;  // Command confirmation response code
 
@@ -797,7 +804,8 @@ void LD2410SComponent::parse_ack_thresholds_read_(uint8_t *data) {
   read_seq_data(data, read_position, gate_threshold, 16, 4);
   for (uint8_t gate = 0; gate < TOTAL_GATES / 2; gate++) {
     this->gate_trig_threshold_[gate] = gate_threshold[gate];
-    ESP_LOGV(TAG, "Parsed Trigger Threshold, Gate: %" PRIu8 ", Value: %" PRIu32, gate, this->gate_trig_threshold_[gate]);
+    ESP_LOGV(TAG, "Parsed Trigger Threshold, Gate: %" PRIu8 ", Value: %" PRIu32, gate,
+             this->gate_trig_threshold_[gate]);
     SAFE_PUBLISH_NUMBER(this->gate_trig_threshold_number_[gate], this->gate_trig_threshold_[gate]);
     this->gate_hold_threshold_[gate] = gate_threshold[gate + 8];
     ESP_LOGV(TAG, "Parsed Hold Threshold, Gate: %" PRIu8 ", Value: %" PRIu32, gate, this->gate_hold_threshold_[gate]);
@@ -816,7 +824,8 @@ void LD2410SComponent::parse_ack_snrs_read_(uint8_t *data) {
     ESP_LOGV(TAG, "Parsed Trigger Threshold, Gate: %" PRIu8 ", Value: %" PRIu32, gate + 8,
              this->gate_trig_threshold_[gate + 8]);
     this->gate_hold_threshold_[gate + 8] = gate_threshold[gate + 8];
-    ESP_LOGV(TAG, "Parsed Hold Threshold, Gate: %" PRIu8 ", Value: %" PRIu32, gate + 8, this->gate_hold_threshold_[gate + 8]);
+    ESP_LOGV(TAG, "Parsed Hold Threshold, Gate: %" PRIu8 ", Value: %" PRIu32, gate + 8,
+             this->gate_hold_threshold_[gate + 8]);
     SAFE_PUBLISH_NUMBER(this->gate_hold_threshold_number_[gate + 8], this->gate_hold_threshold_[gate + 8]);
   }
 #endif

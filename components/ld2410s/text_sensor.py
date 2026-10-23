@@ -1,11 +1,7 @@
 import esphome.codegen as cg
 from esphome.components import text_sensor
 import esphome.config_validation as cv
-from esphome.const import (
-    CONF_ID,
-    ENTITY_CATEGORY_DIAGNOSTIC,
-    ICON_CHIP,
-)
+from esphome.const import CONF_ID, ENTITY_CATEGORY_DIAGNOSTIC, ICON_CHIP
 
 from . import CONF_LD2410S_ID, LD2410SComponent
 
