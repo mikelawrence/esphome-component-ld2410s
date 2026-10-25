@@ -13,10 +13,6 @@ $composeFile = Join-Path $PSScriptRoot "docker-compose.yml"
 $workspaceContainerPath = "/workspaces/component"
 $docker = Get-Command docker.exe -ErrorAction SilentlyContinue
 
-if (-not $docker) {
-    throw "docker.exe was not found. Install or start Docker Desktop, then retry."
-}
-
 $configDirectoryPath = Join-Path $repoRoot $ConfigDirectory
 if (-not (Test-Path -LiteralPath $configDirectoryPath -PathType Container)) {
     throw "Configuration directory was not found: $configDirectoryPath"
@@ -37,6 +33,42 @@ foreach ($path in @($configDirectoryPath, $componentsDirectoryPath)) {
     ) {
         throw "Build paths must stay inside the repository: $path"
     }
+}
+
+function Remove-LocalBuildConfigs {
+    param([string[]]$Paths)
+
+    if ($null -eq $Paths) {
+        $Paths = @(
+            Get-ChildItem -LiteralPath $configDirectoryPath -Recurse -File |
+                Where-Object {
+                    $_.FullName -notmatch '[\\/]\.esphome[\\/]' -and
+                    $_.Name -match '\.local-build-[0-9a-f-]+\.(yaml|yml)$'
+                } |
+                ForEach-Object { $_.FullName }
+        )
+    }
+
+    $cleanupErrors = @()
+
+    foreach ($path in $Paths) {
+        try {
+            Remove-Item -LiteralPath $path -Force -ErrorAction Stop
+        }
+        catch {
+            $cleanupErrors += "${path}: $($_.Exception.Message)"
+        }
+    }
+
+    if ($cleanupErrors.Count -gt 0) {
+        throw "Failed to remove temporary build configuration(s): $($cleanupErrors -join '; ')"
+    }
+}
+
+Remove-LocalBuildConfigs
+
+if (-not $docker) {
+    throw "docker.exe was not found. Install or start Docker Desktop, then retry."
 }
 
 $configs = @(
@@ -99,7 +131,6 @@ $sourcePattern = [regex]::new(
     [System.Text.RegularExpressions.RegexOptions]::Multiline
 )
 $utf8WithoutBom = [System.Text.UTF8Encoding]::new($false)
-$stagedConfigs = @()
 $previousImage = $env:ESPHOME_IMAGE
 $images = if ($Image) {
     @($Image)
@@ -107,6 +138,8 @@ $images = if ($Image) {
 else {
     @($Versions | ForEach-Object { "ghcr.io/esphome/esphome:$_" })
 }
+
+$stagedConfigs = @()
 
 if ($images.Count -eq 0) {
     throw "Select at least one ESPHome image with -Versions or -Image."
@@ -129,8 +162,8 @@ try {
         $stagedPath = Join-Path $config.DirectoryName (
             "$($config.BaseName).local-build-$([guid]::NewGuid().ToString()).$($config.Extension.TrimStart('.'))"
         )
-        [System.IO.File]::WriteAllText($stagedPath, $localContent, $utf8WithoutBom)
         $stagedConfigs += $stagedPath
+        [System.IO.File]::WriteAllText($stagedPath, $localContent, $utf8WithoutBom)
     }
 
     $configDirectoryRelativePath = $configDirectoryPath.Substring($repoRoot.TrimEnd('\').Length).TrimStart('\')
@@ -154,12 +187,7 @@ try {
 }
 finally {
     $env:ESPHOME_IMAGE = $previousImage
-
-    foreach ($stagedPath in $stagedConfigs) {
-        if (Test-Path -LiteralPath $stagedPath) {
-            Remove-Item -LiteralPath $stagedPath -Force
-        }
-    }
+    Remove-LocalBuildConfigs -Paths $stagedConfigs
 }
 
 Write-Output "All $($configs.Count) YAML files compiled successfully with $($images -join ', ')."

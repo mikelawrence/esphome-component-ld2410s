@@ -12,6 +12,12 @@
         "-File",
         "${workspaceFolder}\\.devcontainer\\build.ps1"
       ],
+      "dependsOn": "ML ESPHome: Validate ESPHome component",
+      "dependsOrder": "sequence",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
@@ -28,24 +34,6 @@
         "Bypass",
         "-File",
         "${workspaceFolder}\\.devcontainer\\validate.ps1"
-      ],
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      }
-    },
-    {
-      "label": "ML ESPHome: Fix ESPHome component formatting/lint",
-      "type": "process",
-      "command": "powershell.exe",
-      "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}\\.devcontainer\\validate.ps1",
-        "-Fix"
       ],
       "problemMatcher": [],
       "presentation": {
