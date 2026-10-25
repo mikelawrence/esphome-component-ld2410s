@@ -1,6 +1,5 @@
 param(
-    [string]$Image = "ghcr.io/esphome/esphome:dev",
-    [switch]$Fix
+    [string]$Image = "ghcr.io/esphome/esphome:dev"
 )
 
 $ErrorActionPreference = "Stop"
@@ -32,16 +31,12 @@ $previousImage = $env:ESPHOME_IMAGE
 
 try {
     $env:ESPHOME_IMAGE = $Image
-    $containerArguments = @()
-    if ($Fix) {
-        $containerArguments += "--fix"
-    }
 
     & docker.exe compose --project-name $projectName --file $composeFile run --pull missing --rm --no-deps `
-        --workdir /workspaces/component esphome /bin/bash .devcontainer/validate.sh @containerArguments
+        --workdir /workspaces/component esphome /bin/bash .devcontainer/validate.sh --fix
 
     if ($LASTEXITCODE -ne 0) {
-        throw "Component validation or auto-fix failed (exit code $LASTEXITCODE)."
+        throw "Component auto-fix or validation failed (exit code $LASTEXITCODE)."
     }
 }
 finally {
