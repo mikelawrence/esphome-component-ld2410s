@@ -10,7 +10,6 @@ elif (($#)); then
   echo "Usage: $0 [--fix]" >&2
   exit 2
 fi
-
 script_start=${EPOCHREALTIME/./}
 
 mkdir -p test/.esphome
@@ -420,4 +419,3 @@ if ((validation_failed)); then
   fi
   exit 1
 fi
-
