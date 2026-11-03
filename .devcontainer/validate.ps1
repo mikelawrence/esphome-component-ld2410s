@@ -41,6 +41,8 @@ try {
 }
 finally {
     # Remove the project's Compose network so repeated runs don't exhaust Docker's address pools
+    # Docker writes progress to stderr, which would be fatal under ErrorActionPreference=Stop
+    $ErrorActionPreference = "Continue"
     & docker.exe compose --project-name $projectName --file $composeFile down --remove-orphans 2>&1 | Out-Null
     $env:ESPHOME_IMAGE = $previousImage
 }
