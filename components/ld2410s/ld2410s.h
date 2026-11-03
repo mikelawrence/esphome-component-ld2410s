@@ -6,6 +6,7 @@
 #include "esphome/core/defines.h"
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
+#include "esphome/core/version.h"
 
 // components
 #ifdef USE_SENSOR
@@ -39,6 +40,17 @@
 namespace esphome::ld2410s {
 
 using namespace ld24xx;
+
+// TODO: Remove this check when we drop support for ESPHome 2026.10.0 and older
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 11, 0)
+#ifdef USE_SENSOR
+using sensor::SensorWithDedup;
+#endif
+#else
+#ifdef USE_SENSOR
+#define LOG_SENSOR_WITH_DEDUP LOG_SENSOR_WITH_DEDUP_SAFE
+#endif
+#endif
 
 #pragma region Constants
 static constexpr uint8_t TOTAL_GATES = 16;  // Total number of gates supported by the LD2410S
