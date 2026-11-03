@@ -4,7 +4,7 @@
     {
       "label": "ML ESPHome: Build ESPHome test configs",
       "type": "process",
-      "command": "powershell.exe",
+      "command": "pwsh.exe",
       "args": [
         "-NoProfile",
         "-ExecutionPolicy",
@@ -21,13 +21,14 @@
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
-        "panel": "dedicated"
+        "panel": "shared",
+        "clear": false
       }
     },
     {
       "label": "ML ESPHome: Validate ESPHome component",
       "type": "process",
-      "command": "powershell.exe",
+      "command": "pwsh.exe",
       "args": [
         "-NoProfile",
         "-ExecutionPolicy",
@@ -38,13 +39,14 @@
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
-        "panel": "dedicated"
+        "panel": "shared",
+        "clear": false
       }
     },
     {
       "label": "ML ESPHome: Clear cached downloads",
       "type": "process",
-      "command": "powershell.exe",
+      "command": "pwsh.exe",
       "args": [
         "-NoProfile",
         "-ExecutionPolicy",
