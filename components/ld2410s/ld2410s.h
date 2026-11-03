@@ -46,6 +46,10 @@ using namespace ld24xx;
 #ifdef USE_SENSOR
 using sensor::SensorWithDedup;
 #endif
+#else
+#ifdef USE_SENSOR
+#define LOG_SENSOR_WITH_DEDUP LOG_SENSOR_WITH_DEDUP_SAFE
+#endif
 #endif
 
 #pragma region Constants

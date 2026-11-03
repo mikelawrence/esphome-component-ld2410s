@@ -128,11 +128,11 @@ void LD2410SComponent::dump_config() {
 #endif
 #ifdef USE_SENSOR
   ESP_LOGCONFIG(TAG, "Sensors:");
-  LOG_SENSOR_WITH_DEDUP_SAFE("  ", "Cal Progress", this->cal_progress_sensor_);
+  LOG_SENSOR_WITH_DEDUP("  ", "Cal Progress", this->cal_progress_sensor_);
   for (auto &s : this->gate_energy_sensor_) {
-    LOG_SENSOR_WITH_DEDUP_SAFE("  ", "Gate Energy", s);
+    LOG_SENSOR_WITH_DEDUP("  ", "Gate Energy", s);
   }
-  LOG_SENSOR_WITH_DEDUP_SAFE("  ", "Target Distance", this->target_distance_sensor_);
+  LOG_SENSOR_WITH_DEDUP("  ", "Target Distance", this->target_distance_sensor_);
 #endif
 #ifdef USE_TEXT_SENSOR
   ESP_LOGCONFIG(TAG, "Text Sensors:");
