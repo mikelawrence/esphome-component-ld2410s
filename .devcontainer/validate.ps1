@@ -31,6 +31,7 @@ $previousImage = $env:ESPHOME_IMAGE
 
 try {
     $env:ESPHOME_IMAGE = $Image
+    $env:COMPOSE_PROGRESS = "quiet"
 
     & docker.exe compose --project-name $projectName --file $composeFile run --pull missing --rm --no-deps `
         --workdir /workspaces/component esphome /bin/bash .devcontainer/validate.sh --fix
@@ -41,4 +42,5 @@ try {
 }
 finally {
     $env:ESPHOME_IMAGE = $previousImage
+    Remove-Item Env:\COMPOSE_PROGRESS -ErrorAction SilentlyContinue
 }
