@@ -369,8 +369,8 @@ try {
         $lines.Add((& $borderLine $box.BL $box.BM $box.BR))
 
         if ($Final) {
-            $totalWarnings = ($progress.Values | Measure-Object -Property Warnings -Sum).Sum
-            $totalErrors = ($progress.Values | Measure-Object -Property Errors -Sum).Sum
+            $totalWarnings = [int](($progress.Values | ForEach-Object { $_.Warnings } | Measure-Object -Sum).Sum)
+            $totalErrors = [int](($progress.Values | ForEach-Object { $_.Errors } | Measure-Object -Sum).Sum)
             $allPassed = -not ($jobs | Where-Object { $_.State -ne "Completed" })
             $verdict = if ($allPassed) { & $paint "SUCCESS" "1;32" } else { & $paint "FAILURE" "1;31" }
             $warningText = & $paint "$totalWarnings warnings" $(if ($totalWarnings) { "33" } else { "90" })
