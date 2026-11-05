@@ -1,32 +1,32 @@
 categories:
-  - title: '🐛 Bug Fixes'
+  - title: "### 🐛 Bug Fixes"
     when:
       labels:
-        - 'bug'
-  - title: '🚀 New Features'
+        - "bug"
+  - title: "### 🚀 New Features"
     when:
       labels:
-        - 'enhancement'
-  - title: '💥 Breaking Changes'
+        - "enhancement"
+  - title: "### 💥 Breaking Changes"
     when:
       labels:
-        - 'breaking'
-  - title: '🧹 Code Quality Improvements'
+        - "breaking"
+  - title: "### 🧹 Code Quality Improvements"
     when:
-      label: 'quality'
-  - title: '➕ Dependencies'
+      label: "quality"
+  - title: "### ➕ Dependencies"
     collapse-after: 1
     when:
       labels:
-        - 'dependencies'
-  - title: '💁 Documentation'
+        - "dependencies"
+  - title: "### 💁 Documentation"
     collapse-after: 1
     when:
       labels:
-        - 'documentation'
-  - title: '🧰 Maintenance'
+        - "documentation"
+  - title: "### 🧰 Maintenance"
     when:
-      label: 'chore'
+      label: "chore"
 
 template: |
   ## What's Changed
