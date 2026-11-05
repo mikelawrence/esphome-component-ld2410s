@@ -6,23 +6,13 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: true
-
 jobs:
-  release:
-    name: Create Release
+  info:
+    name: Draft CalVer Release Info
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Next CalVer
-        id: calver
+      - name: Get Tag and Info
+        id: tag-info
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -30,53 +20,73 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Published releases only (no drafts).
-          gh api --paginate "repos/${GH_REPO}/releases?per_page=100" \
-            | jq -s 'add' > releases.json
+          # Draft releases are only visible through the releases API.
+          gh api "repos/${GH_REPO}/releases" > releases.json
 
-          # Match bare YY.M.N or YYYY.M.N only -- no prefixes accepted.
-          # Normalize 2-digit years to 4 and emit "YYYY M N" per line.
-          #   26.07.9  / 2026.7.10 / 26.12.1 -> match
-          #   v26.07.3 / release-2026.7.4    -> no match
-          #   026.7.9  / 2026.7.1-beta       -> no match
-          jq -r '
-            def to4($y): if $y < 100 then 2000 + $y else $y end;
-            def num: sub("^0+(?=[0-9])"; "") | tonumber;
+          # Keep only draft releases with CalVer tags (YY.M.N).
+          jq -c '
             .[]
-            | select(.draft == false)
-            | ((.tag_name // "")
-                | capture("^(?<y>[0-9]{2}(?:[0-9]{2})?)\\.(?<m>[0-9]{1,2})\\.(?<n>[0-9]+)$")
-              ) // empty
-            | "\(to4(.y | num)) \(.m | num) \(.n | num)"
-          ' releases.json | sort -k1,1n -k2,2n -k3,3n > calver.txt
+            | select(.draft == true)
+            | select((.tag_name // "") | test("^[0-9]{2}\\.[0-9]{1,2}\\.[0-9]+$"))
+          ' releases.json > calver_draft_releases.jsonl
 
-          year=$(date -u +%Y)
-          month=$(date -u +%-m)
-
-          if [ -s calver.txt ]; then
-            read -r p_y p_m p_n < <(tail -n1 calver.txt)
-            prev_tag="${p_y}.${p_m}.${p_n}"
-          else
-            prev_tag=""
+          if [ ! -s calver_draft_releases.jsonl ]; then
+            echo "::error::No draft releases found matching CalVer pattern YY.M.N"
+            exit 1
           fi
 
-          # Next N for the current year/month. Sequence starts at 0, so an
-          # unused month gives 0 and an existing max of K gives K+1.
-          next_n=$(awk -v y="$year" -v m="$month" \
-            'BEGIN {max = -1} $1==y && $2==m && $3>max {max=$3} END {print max+1}' calver.txt)
+          # Pick the highest draft by numeric YY, M, N.
+          latest_json=$(
+            jq -s -c '
+              sort_by(
+                (.tag_name | split(".") | map(tonumber))
+              )
+              | last
+            ' calver_draft_releases.jsonl
+          )
 
-          new_tag="${year}.${month}.${next_n}"
+          if [ -z "$latest_json" ] || [ "$latest_json" = "null" ]; then
+            echo "::error::Failed to determine the latest draft CalVer release"
+            exit 1
+          fi
 
-          echo "prev_tag=$prev_tag" >> "$GITHUB_OUTPUT"
-          echo "new_tag=$new_tag" >> "$GITHUB_OUTPUT"
+          latest_tag=$(jq -r '.tag_name // ""' <<< "$latest_json")
+          release_url=$(jq -r '.html_url // ""' <<< "$latest_json")
+          release_body=$(jq -r '.body // ""' <<< "$latest_json")
 
-          echo "Prev tag: ${prev_tag:-<none>}"
-          echo "New tag:  $new_tag"
+          if [ -z "$latest_tag" ] || [ -z "$release_url" ]; then
+            echo "::error::Latest draft CalVer release is missing a tag or URL"
+            exit 1
+          fi
 
-      - name: Create release
-        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64  # v3.0.3
+          echo "tag=$latest_tag" >> "$GITHUB_OUTPUT"
+          echo "release_url=$release_url" >> "$GITHUB_OUTPUT"
+          {
+            echo "release_body<<EOF"
+            echo "$release_body"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Latest draft tag: $latest_tag"
+          echo "Release URL: $release_url"
+    outputs:
+      summary: ${{ steps.tag-info.outputs.release_body }}
+      url: ${{ steps.tag-info.outputs.release_url }}
+      version: ${{ steps.tag-info.outputs.tag }}
+
+  promote-draft:
+    name: Promote Draft to Release
+    needs:
+      - info
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Promote Draft to Release
+        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1
         with:
-          tag_name: ${{ steps.calver.outputs.new_tag }}
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+          tag: ${{ needs.info.outputs.version }}
+          body: ${{ needs.info.outputs.summary }}
+          makeLatest: true
+          token: ${{ secrets.GITHUB_TOKEN }}

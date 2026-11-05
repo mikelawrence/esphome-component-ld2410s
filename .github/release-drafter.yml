@@ -1,0 +1,36 @@
+categories:
+  - title: '🐛 Bug Fixes'
+    when:
+      labels:
+        - 'bug'
+  - title: '🚀 New Features'
+    when:
+      labels:
+        - 'enhancement'
+  - title: '💥 Breaking Changes'
+    when:
+      labels:
+        - 'breaking'
+  - title: '🧹 Code Quality Improvements'
+    when:
+      label: 'quality'
+  - title: '➕ Dependencies'
+    collapse-after: 1
+    when:
+      labels:
+        - 'dependencies'
+  - title: '💁 Documentation'
+    collapse-after: 1
+    when:
+      labels:
+        - 'documentation'
+  - title: '🧰 Maintenance'
+    when:
+      label: 'chore'
+
+template: |
+  ## What's Changed
+
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...$RESOLVED_VERSION
