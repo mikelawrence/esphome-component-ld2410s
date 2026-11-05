@@ -24,7 +24,7 @@ categories:
     when:
       labels:
         - 'documentation'
-  - title: '🧰 Maintenance'
+  - title: '### 🧰 Maintenance'
     when:
       label: 'chore'
 
