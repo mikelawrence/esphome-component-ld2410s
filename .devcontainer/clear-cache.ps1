@@ -1,6 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $composeFile = Join-Path $PSScriptRoot "docker-compose.yml"
+$composeCliFile = Join-Path $PSScriptRoot "docker-compose.cli.yml"
 $docker = Get-Command docker.exe -ErrorAction SilentlyContinue
 if (-not $docker) {
     throw "docker.exe was not found. Install or start Docker Desktop, then retry."
@@ -25,7 +26,7 @@ if ($imageCacheVolumes.Count -gt 0) {
         throw "Failed to remove per-image cache volumes (exit code $LASTEXITCODE)."
     }
 }
-& docker.exe compose --file $composeFile run --pull missing --rm --no-deps `
+& docker.exe compose --file $composeFile --file $composeCliFile run --pull missing --rm --no-deps `
     esphome /bin/bash -lc $clearCacheCommand
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to clear the shared component cache volumes (exit code $LASTEXITCODE)."

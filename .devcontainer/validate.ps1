@@ -6,6 +6,7 @@ $ErrorActionPreference = "Stop"
 
 $repoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path
 $composeFile = Join-Path $PSScriptRoot "docker-compose.yml"
+$composeCliFile = Join-Path $PSScriptRoot "docker-compose.cli.yml"
 $docker = Get-Command docker.exe -ErrorAction SilentlyContinue
 
 if (-not $docker) {
@@ -28,12 +29,14 @@ $projectSlug = [regex]::Replace(
 )
 $projectName = "component-$projectSlug-$projectHash"
 $previousImage = $env:ESPHOME_IMAGE
+. (Join-Path $PSScriptRoot "cleanup-networks.ps1")
+Remove-UnusedBuildNetworks @($projectName)
 
 try {
     $env:ESPHOME_IMAGE = $Image
     $env:COMPOSE_PROGRESS = "quiet"
 
-    & docker.exe compose --project-name $projectName --file $composeFile run --pull missing --rm --no-deps `
+    & docker.exe compose --project-name $projectName --file $composeFile --file $composeCliFile run --pull missing --rm --no-deps `
         --workdir /workspaces/component esphome /bin/bash .devcontainer/validate.sh --fix
 
     if ($LASTEXITCODE -ne 0) {

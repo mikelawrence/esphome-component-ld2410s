@@ -10,6 +10,7 @@ $ErrorActionPreference = "Stop"
 
 $repoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path
 $composeFile = Join-Path $PSScriptRoot "docker-compose.yml"
+$composeCliFile = Join-Path $PSScriptRoot "docker-compose.cli.yml"
 $workspaceContainerPath = "/workspaces/component"
 $docker = Get-Command docker.exe -ErrorAction SilentlyContinue
 
@@ -92,6 +93,7 @@ $projectSlug = [regex]::Replace(
     '-'
 )
 $projectName = "component-$projectSlug-$projectHash"
+. (Join-Path $PSScriptRoot "cleanup-networks.ps1")
 $sourcePattern = [regex]::new(
     '^(?<indent>[ \t]*)-\s*source:\s*["'']?github://' +
         [regex]::Escape($ComponentSource) +
@@ -107,38 +109,45 @@ else {
     @($Versions | ForEach-Object { "ghcr.io/esphome/esphome:$_" })
 }
 
-function Get-RemoteDigest([string]$ImageName) {
-    $output = & docker.exe buildx imagetools inspect $ImageName 2>$null
+function Get-ImageVersion([string]$ImageName) {
+    $PSNativeCommandUseErrorActionPreference = $false
+    $output = & docker.exe run --rm --network none --pull missing --entrypoint esphome $ImageName version 2>&1
     if ($LASTEXITCODE -ne 0) {
-        return $null
+        throw "Could not determine ESPHome version for ${ImageName}: $($output -join "`n")"
     }
-    $match = [regex]::Match(($output -join "`n"), '(?m)^Digest:\s+(sha256:[0-9a-f]+)')
-    if ($match.Success) { $match.Groups[1].Value } else { $null }
-}
-
-# Skip beta when it is the same image as stable
-$stableImage = "ghcr.io/esphome/esphome:stable"
-$betaImage = "ghcr.io/esphome/esphome:beta"
-if (-not $Image -and ($images -contains $stableImage) -and ($images -contains $betaImage)) {
-    $stableDigest = Get-RemoteDigest $stableImage
-    $betaDigest = Get-RemoteDigest $betaImage
-    if ($stableDigest -and $stableDigest -eq $betaDigest) {
-        $betaSameAsStable = $true
-        $images = @($images | Where-Object { $_ -ne $betaImage })
+    $match = [regex]::Match(($output -join "`n"), '(?m)^Version:\s*(\S+)\s*$')
+    if (-not $match.Success) {
+        throw "Unexpected ESPHome version output from ${ImageName}: $($output -join "`n")"
     }
+    return $match.Groups[1].Value
 }
 
 # Versions shown on the status line; beta is listed even when skipped
 $statusVersions = @(
     $images | ForEach-Object { if ($_ -match '^ghcr\.io/esphome/esphome:(.+)$') { $Matches[1] } else { $_ } }
 )
-if ($betaSameAsStable) {
-    $statusVersions = @("stable", "beta", "dev") | Where-Object { $_ -in ($statusVersions + "beta") }
+
+# Compare the same locally available images that Compose will use for compilation.
+$stableImage = "ghcr.io/esphome/esphome:stable"
+$betaImage = "ghcr.io/esphome/esphome:beta"
+if (-not $Image -and ($images -contains $stableImage) -and ($images -contains $betaImage)) {
+    $stableVersion = Get-ImageVersion $stableImage
+    $betaVersion = Get-ImageVersion $betaImage
+    if ($stableVersion -eq $betaVersion) {
+        $betaSameAsStable = $true
+        $images = @($images | Where-Object { $_ -ne $betaImage })
+    }
 }
 
 if ($images.Count -eq 0) {
     throw "Select at least one ESPHome image with -Versions or -Image."
 }
+
+$legacyProjects = @("stable", "beta", "dev") + @($images | ForEach-Object {
+    $label = if ($_ -match '^ghcr\.io/esphome/esphome:(.+)$') { $Matches[1] } else { $_ }
+    [regex]::Replace($label.ToLowerInvariant(), '[^a-z0-9_-]', '-')
+})
+Remove-UnusedBuildNetworks @($legacyProjects | ForEach-Object { "$projectName-$_" })
 
 try {
     $configDirectoryRelativePath = $configDirectoryPath.Substring($repoRoot.TrimEnd('\').Length).TrimStart('\')
@@ -181,7 +190,7 @@ try {
     # Each image builds in its own job (separate process, so ESPHOME_IMAGE is isolated)
     # and its own compose project, so the images compile in parallel.
     $buildImage = {
-        param($image, $label, $projectName, $composeFile, $containerConfigDirectory, $containerConfigPaths)
+        param($image, $label, $projectName, $composeFile, $composeCliFile, $containerConfigDirectory, $containerConfigPaths)
 
         $ErrorActionPreference = "Stop"
         $PSNativeCommandUseErrorActionPreference = $false
@@ -197,7 +206,7 @@ try {
             "$(& $stamp) Compiling $containerConfigPath with $image"
             # Do not wrap this in script(1) for a pseudo-TTY: util-linux 2.41 script spins at 100% CPU and
             # stops draining its pty, which deadlocks esphome and ninja until the build is killed.
-            & docker.exe compose --project-name $projectName --file $composeFile run --pull missing --rm --no-deps -T `
+            & docker.exe compose --project-name $projectName --file $composeFile --file $composeCliFile run --pull missing --rm --no-deps -T `
                 -e ESPHOME_DATA_DIR=/esphome-data `
                 --workdir $containerConfigDirectory esphome esphome compile $containerConfigPath 2>&1 |
                 ForEach-Object { "$(& $stamp) $($_ -replace '\r+$', '')" }
@@ -214,7 +223,7 @@ try {
         $label = if ($image -match '^ghcr\.io/esphome/esphome:(.+)$') { $Matches[1] } else { $image }
         $imageProjectName = "$projectName-" + [regex]::Replace($label.ToLowerInvariant(), '[^a-z0-9_-]', '-')
         Start-Job -Name $label -ScriptBlock $buildImage -ArgumentList `
-            $image, $label, $imageProjectName, $composeFile, $containerConfigDirectory, $containerConfigPathsByImage[$image]
+            $image, $label, $imageProjectName, $composeFile, $composeCliFile, $containerConfigDirectory, $containerConfigPathsByImage[$image]
     }
 
     # Each image's output is also kept in a temp log, copied to <config dir>/.esphome when the build ends
@@ -326,7 +335,8 @@ try {
             $job = $jobs | Where-Object { $_.Name -eq $version }
             if ($job -and $progress[$job.Id].Version) { "$name v$($progress[$job.Id].Version)" }
             elseif ($job) { $name }
-            else { "$name None" }
+            elseif ($version -eq "beta" -and $betaSameAsStable) { "$name v$betaVersion" }
+            else { $name }
         }
         $lines = [System.Collections.Generic.List[string]]::new()
         $lines.Add((& $paint "Building ESPHome $($titles -join ', ')" "1;36"))
@@ -341,7 +351,7 @@ try {
             if (-not $job) {
                 $gray = "90"
                 $cells = @(
-                    @{ Text = $name; Color = $gray }, @{ Text = "-"; Color = $gray }, @{ Text = "Same image as Stable"; Color = $gray },
+                    @{ Text = $name; Color = $gray }, @{ Text = $betaVersion; Color = $gray }, @{ Text = "Same version as Stable"; Color = $gray },
                     @{ Text = "-"; Color = $gray }, @{ Text = "-"; Color = $gray }, @{ Text = "-"; Color = $gray },
                     @{ Text = "-"; Color = $gray }, @{ Text = "Skipped"; Color = $gray }
                 )

@@ -320,6 +320,8 @@ text_sensor:
 
 ## Development with VS Code Dev Containers
 
+When both ESPHome `stable` and `beta` images are selected, the build script skips `beta` if its reported version matches `stable`. Build and validation use Docker's default bridge network and remove unused build networks left by older script versions for this checkout. Networks with attached containers and networks belonging to other projects are left alone. Cache-clearing also uses Docker's default bridge network.
+
 Open this component directory as the VS Code workspace and reopen it in the Dev Container. All component checkouts share the same persistent ESPHome, PlatformIO, and pip cache volumes; Docker also reuses locally downloaded ESPHome images.
 
 Run the VS Code task **Clear cached downloads** to empty the shared cache volumes and remove locally downloaded `ghcr.io/esphome/esphome` images. Close the Dev Container before running the task so Docker can remove images that are in use.
