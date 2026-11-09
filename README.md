@@ -30,13 +30,15 @@ ld2410s:
   uart_id: ld2410s_uart
 ```
 
-## Configuration Variables
+## Component/Hub
+
+### Configuration Variables
 
 * **id** (*Optional*, [ID](https://esphome.io/guides/configuration-types/#id)): Manually specify the ID for the ld2410s component. Required if there are multiple LD2410Ss configured.
 
 * **uart_id** (*Optional*, [ID](https://esphome.io/guides/configuration-types/#id)): Manually specify the ID of the UART Component to use. Required if you have multiple UARTs configured.
 
-## Buttons
+## Button
 
 The `ld2410s` button allows you to perform `calibration start` actions on your LD2410S.
 
@@ -54,7 +56,7 @@ button:
 
 * **cal_start** (*Optional*): When you click this button the built-in LD2410S Auto-Calibration will start. Be sure to have the room in the idle state, i.e. no people, pets or robot vaccumes running. All Options from [Button Component](https://esphome.io/components/button/#base-button-configuration).
 
-## Binary Sensors
+## Binary Sensor
 
 The `ld2410s` binary sensor `has target` and `calibration running` state information on your LD2410S.
 
@@ -82,7 +84,9 @@ binary_sensor:
 > If you have defined other filters, this default will be overridden; you may of course add it back to your custom filter(s) as above if you wish.
 > To remove the default filter for any given sensor instance, add `filters: []` to its configuration.
 
-## Numbers
+## Number
+
+Gate settings use `g0` through `g15`; each gate can contain either or both `trigger_threshold` and `hold_threshold` number entities.
 
 The `ld2410s` number platform allows you to control the gate distance, no detection delay, reporting frequency and threshold hold and threshold trigger for each gate of your LD2410S.
 
@@ -202,7 +206,7 @@ number:
 
   * **trigger_threshold** (*Optional*): Trigger Threshold detemine when the energy is enough to switch to target detected for the given gate. Default is gate specific and range is 10 to 95dB for gates 0 - 7 and 5 to 63dB for gate 8 - 15 in steps of 1dB. All Options from [Number Component](https://esphome.io/components/number/#base-number-configuration).
 
-## Selects
+## Select
 
 The `ld2410s` select allows you to control the response speed of your LD2410S.
 
@@ -220,7 +224,9 @@ select:
 
 * **response_speed** (*Optional*): This is how quickly the sensor switches to no occupancy.You have two options `Normal` and `Fast`. All Options from [Select Component](https://esphome.io/components/select/#base-select-configuration).
 
-## Sensors
+## Sensor
+
+Gate energy sensor keys are `g0_energy` through `g15_energy`.
 
 The `ld2410s` sensor reports the `target distance`, `calibration progress` and gate energies for each gate of your LD2410S.
 
@@ -282,7 +288,7 @@ sensor:
 > If you have defined other filters, this default will be overridden; you may of course add it back to your custom filter(s) as above if you wish.
 > To remove the default filter for any given sensor instance, add `filters: []` to its configuration.
 
-## Switches
+## Switch
 
 The `ld2410s` switch allows to the turn on `minimal output` on your LD2410S.
 
@@ -300,7 +306,7 @@ switch:
 
 * **minimal_output** (*Optional*): When turned on the unit stops sending detailed target parameters like individual gate data and only streams simple presence states over the serial port . All Options from [Switch Component](https://esphome.io/components/switch/#base-switch-configuration).
 
-## Text Sensors
+## Text Sensor
 
 The `ld2410s` text sensor reports the `firmware version` of your LD2410S.
 
