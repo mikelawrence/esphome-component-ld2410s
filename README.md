@@ -326,7 +326,7 @@ text_sensor:
 
 ## Development with VS Code Dev Containers
 
-Open the component folder in VS Code and select **Reopen in Container** for development. Docker Desktop is required. The tasks below run from the Windows host workspace using **Terminal > Run Task**:
+Docker Desktop is required. The tasks below run from the Windows host workspace using **Terminal > Run Task**:
 
 - **ML ESPHome: Build ESPHome test configs**: The default build task. Validates first, then compiles the test configurations with ESPHome stable, beta, and dev using the local component source.
 - **ML ESPHome: Validate ESPHome component**: Applies supported automatic fixes and checks the component without building test configurations.
