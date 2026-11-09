@@ -42,3 +42,67 @@ To run compilation by itself, run:
 The build script temporarily rewrites matching GitHub external-component sources to use this checkout's `components/` directory, leaving the original test files unchanged. It reads the component's GitHub owner and repository from the `origin` remote; if there is no GitHub `origin`, provide it explicitly with `-ComponentSource owner/repository`. Pass `-Versions @("dev")` to select ESPHome tags, or `-Image ghcr.io/esphome/esphome:<tag>` to use one custom image. The VS Code task **ML ESPHome: Validate ESPHome component** runs just the auto-fix and validation step.
 
 There is no separate unit-test runner configured in this repository. Treat compiling the test configurations as the integration/build test. If auto-fix, validation, or compilation fails, report the specific failure rather than treating it as passed.
+
+## README.md format
+
+    ```markdown
+
+    # External Component Name
+
+    <<!-- Picture -->>
+
+    <<!-- Description -->>
+
+        ```yaml
+        Full example configuration entry
+        ```
+
+    ## Component/Hub <<!-- This may not exist for a given component -->>
+
+    <<!-- Description of component/hub -->>
+
+        ```yaml
+        Component/Hub example configuration entry
+        ```
+
+    ### Configuration Variables
+
+    <<!-- Specific to Component/Hub -->>
+
+    ## Binary Sensor
+
+    <<!-- Description of binary sensors. This is minimal -->>
+
+        ```yaml
+        Binary Sensors example configuration entry
+        ```
+
+    ### Configuration Variables
+
+    <<!-- Specific to Binary Sensors -->>
+
+    Repeat the two headings ofr each of the types: text sensor, sensor, select, etc.
+
+    ## Automations
+
+    ### name.action Action
+
+    <<!-- Description of automation -->>
+
+    #### Configuration Variables
+
+    <<!-- Specific to Action -->>
+
+    #### Configuration Examples
+
+        ```yaml
+        Action example configuration entry
+        ```
+
+    <<!-- Add add as many actions as needed -->>
+
+    ## Additional sections
+    
+    <<!-- Additional sections like Calibration -->>
+    ```
+
